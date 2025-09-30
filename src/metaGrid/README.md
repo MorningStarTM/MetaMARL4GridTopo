@@ -126,3 +126,63 @@ env.close()
 ```
 
 
+# GeometricMetaEnv Task
+
+A tiny wrapper around Grid2Op that lets you treat each task as one GeometricOpponent configuration.
+
+## What it does:
+Builds a Grid2Op environment where attacks happen at random times (geometric clock) on a given set of lines. You switch tasks to change the opponent’s timing and which lines it can attack.
+
+## What a task contains (single-area):
+
+* lines_attacked: list of line names.
+
+* attack_every_h: average hours between attacks (> 0).
+
+* avg_attack_duration_h: average outage length (must be strictly > min_attack_duration_h).
+
+* min_attack_duration_h: minimum outage length (≥ 1).
+
+* pmax_pmin_ratio: bias for picking lines (1.0 ≈ uniform).
+
+* budget_per_ts, init_budget: opponent budget growth and starting budget (≥ 0).
+
+## How you use it:
+
+* sample_tasks(n) → get n valid task dicts.
+
+* reset_task(task) → rebuilds the env with that schedule.
+
+* reset()/step(action) → returns native Grid2Op Observation, reward, done, info (with info["task"]).
+
+
+# GeometricMultiAreaMetaEnv Task
+
+A meta-environment that configures GeometricOpponentMultiArea, i.e., multiple geometric opponents in parallel, each attacking a different subset (“area”) of lines—but using one shared timing configuration.
+
+## What it does:
+Creates multiple attack areas at once (list of line groups). At each step, any area can start or continue an attack according to a shared geometric schedule.
+
+## What a task contains (multi-area):
+
+* lines_attacked_areas: list of lists of line names (one inner list per area).
+
+* Shared schedule across all areas:
+
+  * attack_every_h (> 0),
+
+  * avg_attack_duration_h (> min_attack_duration_h),
+
+  * min_attack_duration_h (≥ 1),
+
+  * pmax_pmin_ratio (≥ 1.0).
+
+  * Global budget: budget_per_ts, init_budget (≥ 0).
+
+## How you use it:
+
+* sample_tasks(n) → returns n tasks with multiple areas pre-filled.
+
+* reset_task(task) → applies that multi-area configuration.
+
+* reset()/step(action) → returns native Grid2Op Observation, reward, done, info (with info["task"]).
